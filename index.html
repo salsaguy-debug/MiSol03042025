@@ -4,28 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>La Cenicienta de Bucaramanga</title>
-  <link rel="stylesheet" href="style.css?v=3.0">
+  <link rel="stylesheet" href="style.css?v=3.2">
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 <body>
 
   <div id="intro-overlay" class="overlay flex-column">
-    <img src="img/30.jpg" alt="La Cenicienta Logo" id="intro-logo">
+    <img src="img/30.png" alt="Logo" id="intro-logo">
     
     <div id="welcome-content" class="intro-box">
       <h2 class="welcome-title">The Cinderella of Bucaramanga</h2>
-      <p class="welcome-p">A magical journey through memories and heritage.</p>
+      <p class="welcome-p">A magical journey through heritage and dance.</p>
       <div class="promo-links">
-        <p>Visit us at: <br>
-        <a href="https://salsarichmond.com" target="_blank">salsarichmond.com</a></p>
+        <p>Learn more at: <a href="https://salsarichmond.com" target="_blank">salsarichmond.com</a></p>
       </div>
-    </div>
-
-    <div id="instructions-content" class="intro-box" style="display: none;">
-      <h2 class="orange-text">HOW TO PLAY</h2>
-      <div class="instr-item"><span>🎴</span> <b>FLIP:</b> Click a card to reveal a memory.</div>
-      <div class="instr-item"><span>✨</span> <b>MATCH:</b> Find the pair to clear the board.</div>
-      <div class="instr-item"><span>🏆</span> <b>WIN:</b> Complete the 4x4 grid to celebrate!</div>
     </div>
 
     <div id="countdown-display">
@@ -39,25 +31,21 @@
     <div class="stats-container">
       <span>Time: <b id="timer">00:00</b></span>
       <span>Moves: <b id="move-counter">0</b></span>
-      <span>Score: <b id="score-display">1000</b></span>
-      <button class="btn-orange" onclick="resetGame()">New Game</button>
+      <button class="btn-orange" onclick="location.reload()">New Game</button>
     </div>
   </div>
 
   <div id="win-modal" class="overlay" style="display: none;">
     <div class="message-content win-card">
       <h2>¡Felicidades!</h2>
-      <p id="final-stats-text"></p>
-      <h1 id="final-score-big">0</h1>
-      <p>You've mastered the memories of Bucaramanga.</p>
-      <button class="btn-orange" onclick="resetGame()">Play Again</button>
+      <p>The memories are complete.</p>
+      <button class="btn-orange" onclick="location.reload()">Play Again</button>
     </div>
   </div>
 
-  <section class="memory-game" id="game-board">
-    </section>
+  <section class="memory-game" id="game-board"></section>
 
-  <audio id="bg-music" src="audio/bg-music.mp3" loop></audio>
+  <audio id="bg-music" src="audio/bg_music.mp3" loop></audio>
   <audio id="sound-flip" src="audio/flip.mp3"></audio>
   <audio id="sound-match" src="audio/match.mp3"></audio>
   <audio id="sound-mismatch" src="audio/mismatch.mp3"></audio>
