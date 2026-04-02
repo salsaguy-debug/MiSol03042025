@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>La Cenicienta de Bucaramanga</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=1.2">
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 <body>
@@ -28,10 +28,10 @@
     <div class="stats-container">
       <span>Moves: <b id="move-counter">0</b></span>
       
-      <div class="audio-controls">
+      <div class="audio-settings-bar">
         <button id="mute-btn" class="btn-audio" onclick="toggleMute()">🔊</button>
         <div class="volume-group">
-          <label>Vol:</label>
+          <span>Audio Settings</span>
           <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5" oninput="updateVolume(this.value)">
         </div>
       </div>
@@ -41,9 +41,9 @@
   </div>
 
   <div id="win-modal" class="overlay" style="display: none;">
-    <div class="message-content win-card">
+    <div class="win-card message-content">
       <h2>¡Felicidades!</h2>
-      <p>The memories are complete.</p>
+      <p>You've mastered the memories of Bucaramanga.</p>
       <button class="btn-orange" onclick="resetGame()">Play Again</button>
     </div>
   </div>
