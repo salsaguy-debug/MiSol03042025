@@ -1,13 +1,28 @@
 const gameBoard = document.getElementById('game-board');
 const bgMusic = document.getElementById('bg-music');
+const sfx = {
+    flip: document.getElementById('sound-flip'),
+    match: document.getElementById('sound-match'),
+    mismatch: document.getElementById('sound-mismatch')
+};
+
 const totalPool = 34;
 const pairsCount = 8;
-
 let hasFlipped = false;
 let lockBoard = false;
 let firstCard, secondCard;
 let matches = 0;
 let moves = 0;
+
+// If an image fails to load, this prevents the game from breaking
+function handleImageError(img, id) {
+    img.style.display = 'none';
+    const parent = img.parentElement;
+    const errorText = document.createElement('span');
+    errorText.className = 'img-error';
+    errorText.innerText = id.split('.')[0]; 
+    parent.appendChild(errorText);
+}
 
 function initGame() {
     gameBoard.innerHTML = '';
@@ -16,11 +31,11 @@ function initGame() {
     document.getElementById('move-counter').innerText = '0';
     document.getElementById('win-modal').style.display = 'none';
     
-    // Explicitly mapping extensions based on your GitHub files
     let images = [];
     for (let i = 1; i <= totalPool; i++) {
-        if (i === 6 || i === 30) continue; // Skip logo and back card
-
+        // CRITICAL: Skip 6 (Back) and 30 (Logo) so they aren't in the matching deck
+        if (i === 6 || i === 30) continue; 
+        
         let ext = '.jpg';
         if ([1, 31, 32, 33, 34].includes(i)) ext = '.jpeg';
         if ([3, 7, 8, 9, 29].includes(i)) ext = '.png';
@@ -28,9 +43,11 @@ function initGame() {
         images.push(`${i}${ext}`);
     }
 
-    // Shuffle and pick 8 pairs
+    // Shuffle and pick 8 random unique images
     images.sort(() => Math.random() - 0.5);
     let selection = images.slice(0, pairsCount);
+    
+    // Create the pairs (16 cards total)
     let deck = [...selection, ...selection].sort(() => Math.random() - 0.5);
 
     deck.forEach(name => {
@@ -38,7 +55,10 @@ function initGame() {
         card.classList.add('memory-card');
         card.dataset.id = name;
         card.innerHTML = `
-            <img class="front-face" src="img/${name}" onerror="console.error('Failed: ${name}')">
+            <div class="front-face">
+                <img src="img/${name}" style="width:100%; height:100%; object-fit:cover;" 
+                     onerror="handleImageError(this, '${name}')">
+            </div>
             <div class="back-face"></div>
         `;
         card.addEventListener('click', flipCard);
@@ -49,7 +69,7 @@ function initGame() {
 function flipCard() {
     if (lockBoard || this === firstCard) return;
     this.classList.add('flip');
-    document.getElementById('sound-flip').play();
+    sfx.flip.play().catch(() => {});
 
     if (!hasFlipped) {
         hasFlipped = true;
@@ -66,7 +86,7 @@ function flipCard() {
 function checkMatch() {
     if (firstCard.dataset.id === secondCard.dataset.id) {
         matches++;
-        document.getElementById('sound-match').play();
+        sfx.match.play().catch(() => {});
         if (matches === pairsCount) {
             confetti({ particleCount: 150, spread: 70 });
             setTimeout(() => { document.getElementById('win-modal').style.display = 'flex'; }, 500);
@@ -74,10 +94,10 @@ function checkMatch() {
         resetTurn();
     } else {
         lockBoard = true;
-        document.getElementById('sound-mismatch').play();
+        sfx.mismatch.play().catch(() => {});
         setTimeout(() => {
-            firstCard.classList.remove('flip');
-            secondCard.classList.remove('flip');
+            if(firstCard) firstCard.classList.remove('flip');
+            if(secondCard) secondCard.classList.remove('flip');
             resetTurn();
         }, 1000);
     }
@@ -88,25 +108,32 @@ function resetTurn() {
     [firstCard, secondCard] = [null, null];
 }
 
-function resetGame() {
-    initGame(); // Instant restart
+function resetGame() { 
+    initGame(); 
 }
 
-function updateVolume(val) { bgMusic.volume = val; }
+function updateVolume(val) {
+    bgMusic.volume = val;
+    Object.values(sfx).forEach(s => s.volume = val);
+}
+
 function toggleMute() {
-    bgMusic.muted = !bgMusic.muted;
-    document.getElementById('mute-btn').innerText = bgMusic.muted ? '🔇' : '🔊';
+    const isMuted = !bgMusic.muted;
+    bgMusic.muted = isMuted;
+    Object.values(sfx).forEach(s => s.muted = isMuted);
+    document.getElementById('mute-btn').innerText = isMuted ? '🔇' : '🔊';
 }
 
-// Initial Launch with 5s countdown
+// Global Startup Sequence
 let timer = 5;
 const startCounter = setInterval(() => {
     timer--;
-    document.getElementById('count-num').innerText = timer;
+    const countDisplay = document.getElementById('count-num');
+    if (countDisplay) countDisplay.innerText = timer;
     if (timer === 0) {
         clearInterval(startCounter);
         document.getElementById('intro-overlay').style.display = 'none';
-        bgMusic.play().catch(() => console.log("User interaction required for audio"));
+        bgMusic.play().catch(() => {});
         initGame();
     }
 }, 1000);
