@@ -12,13 +12,16 @@ let hasFlipped = false;
 let lockBoard = false;
 let firstCard, secondCard, matches, moves;
 
+// Handle missing images gracefully
 function handleImageError(img, id) {
     img.style.display = 'none';
     const parent = img.parentElement;
-    const errorText = document.createElement('span');
-    errorText.className = 'img-error';
-    errorText.innerText = id.split('.')[0]; 
-    parent.appendChild(errorText);
+    if (!parent.querySelector('.img-error')) {
+        const errorText = document.createElement('span');
+        errorText.className = 'img-error';
+        errorText.innerText = id.split('.')[0]; 
+        parent.appendChild(errorText);
+    }
 }
 
 function initGame() {
@@ -28,14 +31,18 @@ function initGame() {
     document.getElementById('win-modal').style.display = 'none';
     
     let images = [];
+    const cacheBuster = new Date().getTime();
+
     for (let i = 1; i <= totalPool; i++) {
-        // Skip image 6 (back) and 30 (logo) for card selection
+        // Skip image 6 (back) and 30 (logo)
         if (i === 6 || i === 30) continue; 
         
         let ext = '.jpg';
-        if ([1, 31, 32, 33, 34].includes(i)) ext = '.jpeg';
-        if ([3, 7, 8, 9, 29].includes(i)) ext = '.png';
-        images.push(`${i}${ext}`);
+        // Mapping based on your GitHub file list
+        if ([1, 2, 31, 32, 33, 34].includes(i)) ext = '.jpeg';
+        if ([3, 4, 5, 7, 8, 9, 29].includes(i)) ext = '.png';
+        
+        images.push(`${i}${ext}?v=${cacheBuster}`);
     }
 
     images.sort(() => Math.random() - 0.5);
@@ -45,7 +52,7 @@ function initGame() {
     deck.forEach(name => {
         const card = document.createElement('div');
         card.classList.add('memory-card');
-        card.dataset.id = name;
+        card.dataset.id = name.split('?')[0]; 
         card.innerHTML = `
             <div class="front-face">
                 <img src="img/${name}" style="width:100%; height:100%; object-fit:cover;" 
@@ -88,8 +95,8 @@ function checkMatch() {
         lockBoard = true;
         sfx.mismatch.play().catch(() => {});
         setTimeout(() => {
-            firstCard.classList.remove('flip');
-            secondCard.classList.remove('flip');
+            if(firstCard) firstCard.classList.remove('flip');
+            if(secondCard) secondCard.classList.remove('flip');
             resetTurn();
         }, 1000);
     }
@@ -114,7 +121,7 @@ function toggleMute() {
     document.getElementById('mute-btn').innerText = isMuted ? '🔇' : '🔊';
 }
 
-// Initial Countdown
+// Global Startup sequence
 let timer = 5;
 const startCounter = setInterval(() => {
     timer--;
