@@ -6,11 +6,13 @@ const sfx = {
     mismatch: document.getElementById('sound-mismatch')
 };
 
-const totalPool = 40; // Increased to match new file list
-const pairsCount = 8;
+const totalPool = 35; // Number of unique images available
+const pairsCount = 8; // Playing with 16 cards (8 pairs)
+let firstCard, secondCard;
 let hasFlipped = false;
 let lockBoard = false;
-let firstCard, secondCard, matches, moves;
+let matches = 0;
+let moves = 0;
 
 function initGame() {
     gameBoard.innerHTML = '';
@@ -19,14 +21,11 @@ function initGame() {
     document.getElementById('win-modal').style.display = 'none';
     
     let images = [];
-    const version = new Date().getTime(); 
+    const v = new Date().getTime(); // Refresh images
 
     for (let i = 1; i <= totalPool; i++) {
-        // Skip 6 (Back) and 30 (Logo) for the card pool
-        if (i === 6 || i === 30) continue; 
-        
-        // Treat all as .png, including 35 and 40
-        images.push(`${i}.png?v=${version}`);
+        if (i === 6 || i === 30 || i === 40) continue; // Exclude system images
+        images.push(`${i}.png?v=${v}`);
     }
 
     images.sort(() => Math.random() - 0.5);
@@ -39,7 +38,7 @@ function initGame() {
         card.dataset.id = name.split('?')[0]; 
         card.innerHTML = `
             <div class="front-face">
-                <img src="img/${name}" style="width:100%; height:100%; object-fit:cover;">
+                <img src="img/${name}" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">
             </div>
             <div class="back-face"></div>
         `;
@@ -51,7 +50,7 @@ function initGame() {
 function flipCard() {
     if (lockBoard || this === firstCard) return;
     this.classList.add('flip');
-    sfx.flip.play().catch(() => {});
+    sfx.flip.play().catch(()=>{});
 
     if (!hasFlipped) {
         hasFlipped = true;
@@ -66,9 +65,10 @@ function flipCard() {
 }
 
 function checkMatch() {
-    if (firstCard.dataset.id === secondCard.dataset.id) {
+    let isMatch = firstCard.dataset.id === secondCard.dataset.id;
+    if (isMatch) {
         matches++;
-        sfx.match.play().catch(() => {});
+        sfx.match.play().catch(()=>{});
         if (matches === pairsCount) {
             confetti({ particleCount: 150, spread: 70 });
             setTimeout(() => { document.getElementById('win-modal').style.display = 'flex'; }, 500);
@@ -76,10 +76,10 @@ function checkMatch() {
         resetTurn();
     } else {
         lockBoard = true;
-        sfx.mismatch.play().catch(() => {});
+        sfx.mismatch.play().catch(()=>{});
         setTimeout(() => {
-            if(firstCard) firstCard.classList.remove('flip');
-            if(secondCard) secondCard.classList.remove('flip');
+            firstCard.classList.remove('flip');
+            secondCard.classList.remove('flip');
             resetTurn();
         }, 1000);
     }
@@ -98,22 +98,21 @@ function updateVolume(val) {
 }
 
 function toggleMute() {
-    const isMuted = !bgMusic.muted;
-    bgMusic.muted = isMuted;
-    Object.values(sfx).forEach(s => s.muted = isMuted);
-    document.getElementById('mute-btn').innerText = isMuted ? '🔇' : '🔊';
+    bgMusic.muted = !bgMusic.muted;
+    Object.values(sfx).forEach(s => s.muted = bgMusic.muted);
+    document.getElementById('mute-btn').innerText = bgMusic.muted ? '🔇' : '🔊';
 }
 
-// Global Startup sequence
+// Fixed Countdown Timer
 let timer = 5;
-const countDisplay = document.getElementById('count-num');
-const startCounter = setInterval(() => {
+const timerDisplay = document.getElementById('count-num');
+const countdown = setInterval(() => {
     timer--;
-    if (countDisplay) countDisplay.innerText = timer;
-    if (timer === 0) {
-        clearInterval(startCounter);
+    if(timerDisplay) timerDisplay.innerText = timer;
+    if (timer <= 0) {
+        clearInterval(countdown);
         document.getElementById('intro-overlay').style.display = 'none';
-        bgMusic.play().catch(() => {});
+        bgMusic.play().catch(() => console.log("User must click to play audio"));
         initGame();
     }
 }, 1000);
