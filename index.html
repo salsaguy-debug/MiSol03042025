@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>La Cenicienta de Bucaramanga</title>
-  <link rel="stylesheet" href="style.css?v=3.0">
+  <title>The Cinderella of Bucaramanga</title>
+  <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 <body>
@@ -13,6 +13,11 @@
     <img src="img/30.png" alt="Logo" id="intro-logo">
     <div class="intro-box">
       <h2>The Cinderella of Bucaramanga</h2>
+      <div class="instructions">
+        <p>🎴 <b>FLIP:</b> Click a card to reveal a memory.</p>
+        <p>✨ <b>MATCH:</b> Find the pair to clear the board.</p>
+        <p>🏆 <b>WIN:</b> Complete the full grid to celebrate!</p>
+      </div>
       <p>Preparing the magic in: <b id="count-num">5</b></p>
     </div>
   </div>
@@ -21,6 +26,7 @@
     <h1>The Cinderella of Bucaramanga</h1>
     <div class="stats-container">
       <span>Moves: <b id="move-counter">0</b></span>
+      
       <div class="audio-ui">
         <button id="mute-btn" class="btn-audio" onclick="toggleMute()">🔊</button>
         <div class="volume-group">
@@ -28,6 +34,7 @@
           <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5" oninput="updateVolume(this.value)">
         </div>
       </div>
+
       <button class="btn-orange" onclick="resetGame()">New Game</button>
     </div>
   </div>
