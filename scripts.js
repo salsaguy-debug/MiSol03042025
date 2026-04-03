@@ -14,28 +14,28 @@ let firstCard, secondCard, hasFlipped, lockBoard, matches, moves = 0;
 let timer = 5;
 let audioState = { master: 0.5, bg: 0.5, sfx: 0.5, muted: false };
 
-// --- Setup ---
+// --- Persistence & Initialization ---
 updateBestScoreDisplay();
-document.getElementById('new-game-btn').addEventListener('click', resetGame);
-document.getElementById('play-again-btn').addEventListener('click', resetGame);
+
+document.getElementById('new-game-btn').addEventListener('click', () => { kickstartAudio(); resetGame(); });
+document.getElementById('play-again-btn').addEventListener('click', () => { kickstartAudio(); resetGame(); });
 document.getElementById('mute-btn').addEventListener('click', toggleMute);
 
-// Slider Listeners
+// Sliders
 document.getElementById('master-slider').addEventListener('input', (e) => { audioState.master = e.target.value; applyVolumes(); });
 document.getElementById('bg-music-slider').addEventListener('input', (e) => { audioState.bg = e.target.value; applyVolumes(); });
 document.getElementById('sfx-slider').addEventListener('input', (e) => { audioState.sfx = e.target.value; applyVolumes(); });
 
-// Audio Unlocker
-function unlockAudio() {
-    bgMusic.play().then(() => {
-        console.log("Audio unlocked.");
+// THE FIX: Kickstart background music on any click
+function kickstartAudio() {
+    if (bgMusic.paused) {
+        bgMusic.play().catch(() => console.log("Waiting for interaction..."));
         applyVolumes();
-    }).catch(() => {});
-    document.removeEventListener('click', unlockAudio);
-    document.removeEventListener('touchstart', unlockAudio);
+    }
 }
-document.addEventListener('click', unlockAudio);
-document.addEventListener('touchstart', unlockAudio);
+
+// Global click listener to unlock audio if it's still blocked
+document.body.addEventListener('click', kickstartAudio, { once: true });
 
 function initGame() {
     gameBoard.innerHTML = '';
@@ -46,11 +46,9 @@ function initGame() {
     
     let images = [];
     for (let i = 1; i <= totalPool; i++) {
-        // Skip system images (3=Back, 30=Logo, 40=BG)
         if (i === 3 || i === 30 || i === 40) continue; 
         images.push(`${i}.png`);
     }
-
     images.sort(() => Math.random() - 0.5);
     let selection = images.slice(0, pairsCount);
     let deck = [...selection, ...selection].sort(() => Math.random() - 0.5);
@@ -67,6 +65,9 @@ function initGame() {
 
 function flipCard() {
     if (lockBoard || this === firstCard) return;
+    
+    kickstartAudio(); // Double-check music starts on card click
+
     this.classList.add('flip');
     if (sfx.flip) sfx.flip.play();
     if (!hasFlipped) { hasFlipped = true; firstCard = this; return; }
@@ -85,7 +86,11 @@ function checkMatch() {
     } else {
         lockBoard = true;
         if (sfx.mismatch) sfx.mismatch.play();
-        setTimeout(() => { firstCard.classList.remove('flip'); secondCard.classList.remove('flip'); resetTurn(); }, 1000);
+        setTimeout(() => { 
+            firstCard.classList.remove('flip'); 
+            secondCard.classList.remove('flip'); 
+            resetTurn(); 
+        }, 1000);
     }
 }
 
@@ -93,7 +98,6 @@ function handleWin() {
     confetti({ particleCount: 150, spread: 70 });
     const currentBest = localStorage.getItem('memoryGameBest');
     let winMsg = `You found them all in ${moves} moves!`;
-
     if (!currentBest || moves < parseInt(currentBest)) {
         localStorage.setItem('memoryGameBest', moves);
         winMsg = `New High Score! ${moves} moves!`;
@@ -135,6 +139,6 @@ const countdown = setInterval(() => {
         clearInterval(countdown);
         document.getElementById('intro-overlay').style.display = 'none';
         initGame();
-        applyVolumes();
+        kickstartAudio();
     }
 }, 1000);
