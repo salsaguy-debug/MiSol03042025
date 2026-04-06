@@ -2,6 +2,7 @@ const gameBoard = document.getElementById('game-board');
 const bgMusic = document.getElementById('bg-music');
 const moveDisplay = document.getElementById('move-counter');
 const bestDisplay = document.getElementById('best-score');
+
 const sfx = {
     flip: document.getElementById('sound-flip'),
     match: document.getElementById('sound-match'),
@@ -14,17 +15,27 @@ let firstCard, secondCard, hasFlipped, lockBoard, matches, moves = 0;
 let timer = 5;
 let audioState = { master: 0.5, bg: 0.5, sfx: 0.5, muted: false };
 
-// Load high score
+// Load Best Score
 const best = localStorage.getItem('memoryGameBest');
 bestDisplay.innerText = best ? best : '--';
 
-// Start audio on first user click
+// Trigger music on first interaction
 document.addEventListener('click', forcePlayMusic, { once: false });
 
 function forcePlayMusic() {
     applyVolumes();
     if (bgMusic && bgMusic.paused) {
-        bgMusic.play().catch(() => {});
+        bgMusic.play().catch(() => { /* Browser still blocking */ });
+    }
+}
+
+function applyVolumes() {
+    if (audioState.muted) {
+        bgMusic.volume = 0;
+        Object.values(sfx).forEach(s => { if(s) s.volume = 0; });
+    } else {
+        bgMusic.volume = audioState.bg * audioState.master;
+        Object.values(sfx).forEach(s => { if(s) s.volume = audioState.sfx * audioState.master; });
     }
 }
 
@@ -59,7 +70,9 @@ function initGame() {
 
 function flipCard() {
     if (lockBoard || this === firstCard) return;
+    
     forcePlayMusic();
+
     this.classList.add('flip');
     if (sfx.flip) sfx.flip.play();
 
@@ -89,7 +102,7 @@ function checkMatch() {
             sfx.mismatch.play();
         }
 
-        // Add shake animation class
+        // Shake animation logic
         firstCard.classList.add('shake');
         secondCard.classList.add('shake');
 
@@ -113,16 +126,6 @@ function handleWin() {
 
 function resetTurn() { [hasFlipped, lockBoard] = [false, false]; [firstCard, secondCard] = [null, null]; }
 
-function applyVolumes() {
-    if (audioState.muted) {
-        bgMusic.volume = 0;
-        Object.values(sfx).forEach(s => { if(s) s.volume = 0; });
-    } else {
-        bgMusic.volume = audioState.bg * audioState.master;
-        Object.values(sfx).forEach(s => { if(s) s.volume = audioState.sfx * audioState.master; });
-    }
-}
-
 function toggleAudioModal() {
     const modal = document.getElementById('audio-modal');
     modal.style.display = modal.style.display === 'none' ? 'flex' : 'none';
@@ -134,7 +137,7 @@ function toggleMute() {
     applyVolumes();
 }
 
-// Sliders
+// Slider Listeners
 document.getElementById('master-slider').addEventListener('input', (e) => { audioState.master = e.target.value; applyVolumes(); });
 document.getElementById('bg-music-slider').addEventListener('input', (e) => { audioState.bg = e.target.value; applyVolumes(); });
 document.getElementById('sfx-slider').addEventListener('input', (e) => { audioState.sfx = e.target.value; applyVolumes(); });
@@ -142,6 +145,7 @@ document.getElementById('sfx-slider').addEventListener('input', (e) => { audioSt
 document.getElementById('new-game-btn').addEventListener('click', initGame);
 document.getElementById('play-again-btn').addEventListener('click', initGame);
 
+// Countdown logic
 const countdown = setInterval(() => {
     timer--;
     if (document.getElementById('count-num')) document.getElementById('count-num').innerText = timer;
