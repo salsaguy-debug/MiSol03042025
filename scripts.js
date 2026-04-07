@@ -10,18 +10,17 @@ const sfx = {
     mismatch: document.getElementById('sound-mismatch')
 };
 
-// UPDATED POOL SIZE
-const totalPool = 59; 
+// Adjusted to 56 to avoid 404 errors for 57, 58, 59
+const totalPool = 56; 
 const pairsCount = 8; 
 let firstCard, secondCard, hasFlipped, lockBoard, matches, moves = 0;
 let audioState = { bg: 0.5, sfx: 0.5, muted: false };
 
-// Load High Score
 bestDisplay.innerText = localStorage.getItem('memoryGameBest') || '--';
 
 function applyVolumes() {
     bgMusic.volume = audioState.muted ? 0 : audioState.bg;
-    Object.values(sfx).forEach(s => { if(s) s.volume = audioState.muted ? 0 : audioState.sfx; });
+    Object.values(sfx).forEach(s => { if(s) s.volume = audioState.muted ? 0 : 0.5; });
 }
 
 function initGame() {
@@ -33,7 +32,7 @@ function initGame() {
     
     let images = [];
     for (let i = 1; i <= totalPool; i++) {
-        // Exclude UI images
+        // Skip UI images
         if (i === 3 || i === 30 || i === 40) continue; 
         images.push(`${i}.png`);
     }
@@ -47,7 +46,9 @@ function initGame() {
         card.classList.add('memory-card');
         card.dataset.id = name;
         card.innerHTML = `
-            <div class="front-face"><img src="img/${name}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;"></div>
+            <div class="front-face">
+                <img src="img/${name}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">
+            </div>
             <div class="back-face"></div>`;
         card.addEventListener('click', flipCard);
         gameBoard.appendChild(card);
@@ -56,10 +57,8 @@ function initGame() {
 
 function flipCard() {
     if (lockBoard || this === firstCard) return;
-    
-    // Resume music if browser paused it
     if (bgMusic.paused) bgMusic.play().catch(()=>{});
-
+    
     this.classList.add('flip');
     if (sfx.flip) { sfx.flip.currentTime = 0; sfx.flip.play(); }
 
@@ -114,11 +113,11 @@ function toggleAudioModal() {
 
 function toggleMute() {
     audioState.muted = !audioState.muted;
-    document.getElementById('mute-btn').innerText = audioState.muted ? 'Mute All: ON' : 'Mute All: OFF';
+    document.getElementById('mute-btn').innerText = audioState.muted ? 'Mute: ON' : 'Mute: OFF';
     applyVolumes();
 }
 
-// Countdown & Audio Unlock Logic
+// Countdown to start button
 let timer = 5;
 const countdown = setInterval(() => {
     timer--;
@@ -133,12 +132,10 @@ const countdown = setInterval(() => {
 startBtn.addEventListener('click', () => {
     document.getElementById('intro-overlay').style.display = 'none';
     applyVolumes();
-    bgMusic.play().catch(e => console.log("Audio needs user click"));
+    bgMusic.play().catch(() => {});
     initGame();
 });
 
-// Settings Listeners
 document.getElementById('bg-music-slider').addEventListener('input', (e) => { audioState.bg = e.target.value; applyVolumes(); });
-document.getElementById('sfx-slider').addEventListener('input', (e) => { audioState.sfx = e.target.value; applyVolumes(); });
 document.getElementById('new-game-btn').addEventListener('click', initGame);
 document.getElementById('play-again-btn').addEventListener('click', initGame);
