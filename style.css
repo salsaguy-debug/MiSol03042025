@@ -7,6 +7,7 @@ body {
     display: flex; flex-direction: column; align-items: center; min-height: 100vh; 
 }
 
+/* Header UI: Transparent and Clean */
 .game-header { 
     width: 100%; background: none; border-bottom: none; 
     padding: 20px 0; text-align: center; 
@@ -28,7 +29,7 @@ body {
 .memory-card { aspect-ratio: 1/1; position: relative; cursor: pointer; transform-style: preserve-3d; transition: transform 0.4s; }
 .memory-card.flip { transform: rotateY(180deg); }
 
-.front-face, .back-face { width: 100%; height: 100%; position: absolute; backface-visibility: hidden; border-radius: 10px; border: 1px solid var(--orange); }
+.front-face, .back-face { width: 100%; height: 100%; position: absolute; backface-visibility: hidden; border-radius: 10px; border: 2px solid var(--orange); }
 .back-face { background: #222 url('img/3.png') no-repeat center center; background-size: cover; }
 .front-face { background: white; transform: rotateY(180deg); }
 
