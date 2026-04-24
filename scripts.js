@@ -53,11 +53,20 @@ function initGame() {
 }
 
 function flipCard() {
-    if (lockBoard || this === firstCard) return;
+    // Prevent clicking locked board, the same card, or an already flipped/matched card
+    if (lockBoard || this === firstCard || this.classList.contains('flip')) return;
+    
     if (bgMusic.paused) bgMusic.play().catch(()=>{});
+    
     this.classList.add('flip');
     if (sfx.flip) { sfx.flip.currentTime = 0; sfx.flip.play(); }
-    if (!hasFlipped) { hasFlipped = true; firstCard = this; return; }
+    
+    if (!hasFlipped) { 
+        hasFlipped = true; 
+        firstCard = this; 
+        return; 
+    }
+    
     secondCard = this;
     moves++;
     moveDisplay.innerText = moves;
@@ -68,13 +77,22 @@ function checkMatch() {
     if (firstCard.dataset.id === secondCard.dataset.id) {
         matches++;
         if (sfx.match) { sfx.match.currentTime = 0; sfx.match.play(); }
+        
+        // Remove event listeners so matched cards become permanently unclickable
+        firstCard.removeEventListener('click', flipCard);
+        secondCard.removeEventListener('click', flipCard);
+        
         if (matches === pairsCount) handleWin();
         resetTurn();
     } else {
-        lockBoard = true;
+        lockBoard = true; // Lock the board while shaking
         if (sfx.mismatch) { sfx.mismatch.currentTime = 0; sfx.mismatch.play(); }
+        
+        // Add the shake animation class
         firstCard.classList.add('shake');
         secondCard.classList.add('shake');
+        
+        // Wait 1 second before removing shake/flip and unlocking the board
         setTimeout(() => {
             firstCard.classList.remove('shake', 'flip');
             secondCard.classList.remove('shake', 'flip');
@@ -97,11 +115,18 @@ function handleWin() {
     setTimeout(() => { document.getElementById('win-modal').style.display = 'flex'; }, 600);
 }
 
-function resetTurn() { [hasFlipped, lockBoard] = [false, false]; [firstCard, secondCard] = [null, null]; }
+function resetTurn() { 
+    hasFlipped = false; 
+    lockBoard = false; 
+    firstCard = null; 
+    secondCard = null; 
+}
+
 function toggleAudioModal() {
     const modal = document.getElementById('audio-modal');
     modal.style.display = modal.style.display === 'none' ? 'flex' : 'none';
 }
+
 function toggleMute() {
     audioState.muted = !audioState.muted;
     document.getElementById('mute-btn').innerText = audioState.muted ? 'Mute: ON' : 'Mute: OFF';
@@ -115,8 +140,16 @@ const countdown = setInterval(() => {
     if (countEl) countEl.innerText = timer;
     if (timer <= 0) {
         clearInterval(countdown);
-        document.getElementById('timer-text').style.display = 'none';
-        startBtn.style.display = 'inline-block';
+        const timerText = document.getElementById('timer-text');
+        if (timerText) timerText.style.display = 'none';
+        
+        const startBtnElem = document.getElementById('start-btn');
+        if (startBtnElem) {
+            startBtnElem.style.display = 'inline-block';
+        } else {
+            document.getElementById('intro-overlay').style.display = 'none';
+            initGame();
+        }
     }
 }, 1000);
 
