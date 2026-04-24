@@ -10,8 +10,8 @@ const sfx = {
     mismatch: document.getElementById('sound-mismatch')
 };
 
-// Updated pool to include 57.png
-const totalPool = 57; 
+// Updated pool to include 57, 58, 59
+const totalPool = 59; 
 const pairsCount = 8; 
 let firstCard, secondCard, hasFlipped, lockBoard, matches, moves = 0;
 let audioState = { bg: 0.5, sfx: 0.5, muted: false };
@@ -34,8 +34,8 @@ function initGame() {
     
     let images = [];
     for (let i = 1; i <= totalPool; i++) {
-        // Skips missing or unwanted files
-        if (i === 3 || i === 30 || i === 40) continue; 
+        // Skip UI images AND the celebration images (58/59) during game setup
+        if (i === 3 || i === 30 || i === 40 || i === 58 || i === 59) continue; 
         images.push(`${i}.png`);
     }
 
@@ -93,7 +93,7 @@ function checkMatch() {
 }
 
 function handleWin() {
-    confetti({ particleCount: 150, spread: 70 });
+    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
     const currentBest = localStorage.getItem('memoryGameBest');
     if (!currentBest || moves < parseInt(currentBest)) {
         localStorage.setItem('memoryGameBest', moves);
