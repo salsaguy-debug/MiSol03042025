@@ -7,12 +7,7 @@ body {
     display: flex; flex-direction: column; align-items: center; min-height: 100vh; 
 }
 
-/* Header UI: Removed red background and orange divider */
-.game-header { 
-    width: 100%; background: none; border-bottom: none; 
-    padding: 20px 0; text-align: center; 
-}
-
+.game-header { width: 100%; background: none; border-bottom: none; padding: 20px 0; text-align: center; }
 .game-header h1 { text-shadow: 2px 2px 8px rgba(0,0,0,0.9); margin: 0; font-size: 1.8rem; }
 .scaled-logo { width: 250px; height: auto; margin-bottom: 20px; }
 .stats-container { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 10px; }
@@ -21,21 +16,10 @@ body {
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; }
 .modal-content, .win-card, .intro-box { background: #1a1a1a; padding: 30px; border-radius: 20px; border: 2px solid var(--orange); text-align: center; min-width: 300px; }
 
-/* Win Screen Photo Styling */
 .celebration-photos { display: flex; justify-content: center; margin-bottom: 20px; }
-.celebration-photos img { 
-    width: 180px; 
-    height: 180px; 
-    object-fit: cover; 
-    border-radius: 15px; 
-    border: 3px solid var(--orange);
-    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
+.celebration-photos img { width: 180px; height: 180px; object-fit: cover; border-radius: 15px; border: 3px solid var(--orange); animation: popIn 0.5s ease-out; }
 
-@keyframes popIn {
-    0% { transform: scale(0.5); opacity: 0; }
-    100% { transform: scale(1); opacity: 1; }
-}
+@keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
 .volume-control-group { margin-bottom: 20px; text-align: left; }
 .slider-item { margin-bottom: 15px; }
@@ -52,9 +36,5 @@ body {
 .btn-orange { background: var(--orange); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: bold; }
 .btn-close { margin-top: 10px; background: #444; color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; }
 
-@keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-10px); }
-    75% { transform: translateX(10px); }
-}
+@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
 .shake { animation: shake 0.3s ease-in-out; }
