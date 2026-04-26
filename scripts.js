@@ -1,5 +1,6 @@
 const gameBoard = document.getElementById('game-board');
 const bgMusic = document.getElementById('bg-music');
+const winVideo = document.getElementById('win-video');
 const moveDisplay = document.getElementById('move-counter');
 const bestDisplay = document.getElementById('best-score');
 const startBtn = document.getElementById('start-btn');
@@ -14,13 +15,14 @@ const totalPool = 59;
 const pairsCount = 8; 
 let firstCard, secondCard, hasFlipped, lockBoard, matches, moves = 0;
 let audioState = { bg: 0.5, sfx: 0.5, muted: false };
-let showWomanNext = true; 
+let playOption1Next = true; 
 
 bestDisplay.innerText = localStorage.getItem('memoryGameBest') || '--';
 
 function applyVolumes() {
     bgMusic.volume = audioState.muted ? 0 : audioState.bg;
     Object.values(sfx).forEach(s => { if(s) s.volume = audioState.muted ? 0 : audioState.sfx; });
+    if (winVideo) winVideo.volume = audioState.muted ? 0 : audioState.sfx;
 }
 
 function initGame() {
@@ -30,9 +32,17 @@ function initGame() {
     moveDisplay.innerText = '0';
     document.getElementById('win-modal').style.display = 'none';
     
+    // Stop the winning video when restarting the game
+    if (winVideo) {
+        winVideo.pause();
+        winVideo.currentTime = 0;
+    }
+    
     let images = [];
     for (let i = 1; i <= totalPool; i++) {
-        if (i === 3 || i === 30 || i === 40 || i === 58 || i === 59) continue; 
+        // Exclude specific UI/background images from the memory cards
+        // 58 and 59 are no longer skipped, so they will show up in the game!
+        if (i === 3 || i === 30 || i === 40) continue; 
         images.push(`${i}.png`);
     }
 
@@ -53,7 +63,6 @@ function initGame() {
 }
 
 function flipCard() {
-    // Ultimate Guard: Block if locked, if same card, if already flipped, OR if matched
     if (lockBoard || this === firstCard || this.classList.contains('flip') || this.classList.contains('matched')) return;
     
     if (bgMusic.paused) bgMusic.play().catch(()=>{});
@@ -78,11 +87,8 @@ function checkMatch() {
         matches++;
         if (sfx.match) { sfx.match.currentTime = 0; sfx.match.play(); }
         
-        // Add the matched class to trigger CSS pointer-events: none
         firstCard.classList.add('matched');
         secondCard.classList.add('matched');
-        
-        // Redundancy: Also remove event listeners
         firstCard.removeEventListener('click', flipCard);
         secondCard.removeEventListener('click', flipCard);
         
@@ -105,16 +111,33 @@ function checkMatch() {
 
 function handleWin() {
     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-    const winContainer = document.getElementById('winner-image-container');
-    winContainer.innerHTML = showWomanNext ? `<img src="img/58.png">` : `<img src="img/59.png">`;
-    showWomanNext = !showWomanNext;
+    
+    // Alternating Logic for Videos ONLY
+    if (playOption1Next) {
+        if (winVideo) winVideo.src = 'video/win1.mp4';
+    } else {
+        if (winVideo) winVideo.src = 'video/win2.mp4';
+    }
+    
+    playOption1Next = !playOption1Next;
 
     const currentBest = localStorage.getItem('memoryGameBest');
     if (!currentBest || moves < parseInt(currentBest)) {
         localStorage.setItem('memoryGameBest', moves);
         bestDisplay.innerText = moves;
     }
-    setTimeout(() => { document.getElementById('win-modal').style.display = 'flex'; }, 600);
+    
+    setTimeout(() => { 
+        document.getElementById('win-modal').style.display = 'flex'; 
+        
+        bgMusic.pause();
+        
+        if (winVideo) {
+            winVideo.load();
+            winVideo.play().catch(e => console.log("Video autoplay blocked by browser"));
+        }
+        
+    }, 600);
 }
 
 function resetTurn() { 
