@@ -1,192 +1,77 @@
-const gameBoard = document.getElementById('game-board');
-const bgMusic = document.getElementById('bg-music');
-const winVideo = document.getElementById('win-video');
-const moveDisplay = document.getElementById('move-counter');
-const bestDisplay = document.getElementById('best-score');
-const startBtn = document.getElementById('start-btn');
+:root { --orange: #ff8c00; }
 
-const sfx = {
-    flip: document.getElementById('sound-flip'),
-    match: document.getElementById('sound-match'),
-    mismatch: document.getElementById('sound-mismatch')
-};
-
-// UPDATED: Now pulls from 69 possible images!
-const totalPool = 69; 
-const pairsCount = 8; 
-let firstCard, secondCard, hasFlipped, lockBoard, matches, moves = 0;
-let audioState = { bg: 0.5, sfx: 0.5, muted: false };
-let playOption1Next = true; 
-
-bestDisplay.innerText = localStorage.getItem('memoryGameBest') || '--';
-
-function applyVolumes() {
-    bgMusic.volume = audioState.muted ? 0 : audioState.bg;
-    Object.values(sfx).forEach(s => { if(s) s.volume = audioState.muted ? 0 : audioState.sfx; });
-    if (winVideo) winVideo.volume = audioState.muted ? 0 : audioState.sfx;
+body { 
+    background: url('img/40.png') no-repeat center center fixed; 
+    background-size: cover; 
+    margin: 0; font-family: 'Georgia', serif; color: white; 
+    display: flex; flex-direction: column; align-items: center; min-height: 100vh; 
 }
 
-function initGame() {
-    gameBoard.innerHTML = '';
-    matches = 0; moves = 0;
-    hasFlipped = false; lockBoard = false;
-    moveDisplay.innerText = '0';
-    document.getElementById('win-modal').style.display = 'none';
-    
-    // Stop the winning video when restarting the game
-    if (winVideo) {
-        winVideo.pause();
-        winVideo.currentTime = 0;
-    }
-    
-    let images = [];
-    for (let i = 1; i <= totalPool; i++) {
-        // Exclude specific UI/background images from the memory cards
-        if (i === 3 || i === 30 || i === 40) continue; 
-        images.push(`${i}.png`);
-    }
+.game-header { width: 100%; background: none; border-bottom: none; padding: 20px 0; text-align: center; }
+.game-header h1 { text-shadow: 2px 2px 8px rgba(0,0,0,0.9); margin: 0; font-size: 1.8rem; }
+.scaled-logo { width: 250px; height: auto; margin-bottom: 20px; }
+.stats-container { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 10px; }
+.score-box { background: rgba(0,0,0,0.7); padding: 8px 15px; border-radius: 20px; border: 1px solid var(--orange); }
 
-    images.sort(() => Math.random() - 0.5);
-    // The game will randomly pick 8 images from your massive pool of 66 available photos
-    let selection = images.slice(0, pairsCount);
-    let deck = [...selection, ...selection].sort(() => Math.random() - 0.5);
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; }
 
-    deck.forEach(name => {
-        const card = document.createElement('div');
-        card.classList.add('memory-card');
-        card.dataset.id = name;
-        card.innerHTML = `
-            <div class="front-face"><img src="img/${name}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;"></div>
-            <div class="back-face"></div>`;
-        card.addEventListener('click', flipCard);
-        gameBoard.appendChild(card);
-    });
+/* * FIXED LAYOUT: This forces the intro, audio settings, and win screen 
+ * to perfectly center all their items in a vertical stack.
+ */
+.modal-content, .win-card, .intro-box { 
+    background: #1a1a1a; 
+    padding: 30px; 
+    border-radius: 20px; 
+    border: 2px solid var(--orange); 
+    text-align: center; 
+    min-width: 300px; 
+    max-width: 90vw;
+    /* Flexbox Column Layout */
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center;
+    gap: 15px; /* Adds consistent spacing between the title, video, and button */
 }
 
-function flipCard() {
-    if (lockBoard || this === firstCard || this.classList.contains('flip') || this.classList.contains('matched')) return;
-    
-    if (bgMusic.paused) bgMusic.play().catch(()=>{});
-    
-    this.classList.add('flip');
-    if (sfx.flip) { sfx.flip.currentTime = 0; sfx.flip.play(); }
-    
-    if (!hasFlipped) { 
-        hasFlipped = true; 
-        firstCard = this; 
-        return; 
-    }
-    
-    secondCard = this;
-    moves++;
-    moveDisplay.innerText = moves;
-    checkMatch();
+/* Ensure headings inside modals don't add extra weird spacing */
+.win-card h2, .intro-box h2, .modal-content h3 {
+    margin: 0;
 }
 
-function checkMatch() {
-    if (firstCard.dataset.id === secondCard.dataset.id) {
-        matches++;
-        if (sfx.match) { sfx.match.currentTime = 0; sfx.match.play(); }
-        
-        firstCard.classList.add('matched');
-        secondCard.classList.add('matched');
-        firstCard.removeEventListener('click', flipCard);
-        secondCard.removeEventListener('click', flipCard);
-        
-        if (matches === pairsCount) handleWin();
-        resetTurn();
-    } else {
-        lockBoard = true; 
-        if (sfx.mismatch) { sfx.mismatch.currentTime = 0; sfx.mismatch.play(); }
-        
-        firstCard.classList.add('shake');
-        secondCard.classList.add('shake');
-        
-        setTimeout(() => {
-            firstCard.classList.remove('shake', 'flip');
-            secondCard.classList.remove('shake', 'flip');
-            resetTurn();
-        }, 1000);
-    }
+/* Video Styling */
+#win-video {
+    width: 100%;
+    max-width: 300px;
+    border-radius: 10px;
+    border: 2px solid var(--orange);
+    box-shadow: 0 0 15px rgba(255, 140, 0, 0.4);
+    animation: popIn 0.5s ease-out;
 }
 
-function handleWin() {
-    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-    
-    // Alternating Logic for Videos ONLY
-    if (playOption1Next) {
-        if (winVideo) winVideo.src = 'video/win1.mp4';
-    } else {
-        if (winVideo) winVideo.src = 'video/win2.mp4';
-    }
-    
-    playOption1Next = !playOption1Next;
+@keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
-    const currentBest = localStorage.getItem('memoryGameBest');
-    if (!currentBest || moves < parseInt(currentBest)) {
-        localStorage.setItem('memoryGameBest', moves);
-        bestDisplay.innerText = moves;
-    }
-    
-    setTimeout(() => { 
-        document.getElementById('win-modal').style.display = 'flex'; 
-        
-        bgMusic.pause();
-        
-        if (winVideo) {
-            winVideo.load();
-            winVideo.play().catch(e => console.log("Video autoplay blocked by browser"));
-        }
-        
-    }, 600);
+.volume-control-group { text-align: left; width: 100%; }
+.slider-item { margin-bottom: 15px; }
+.slider-item label { display: block; margin-bottom: 5px; font-size: 0.9rem; color: var(--orange); }
+
+.memory-game { width: 90vw; max-width: 600px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px auto; }
+.memory-card { aspect-ratio: 1/1; position: relative; cursor: pointer; transform-style: preserve-3d; transition: transform 0.4s; }
+.memory-card.flip { transform: rotateY(180deg); }
+.memory-card.matched { pointer-events: none; cursor: default; }
+
+.front-face, .back-face { width: 100%; height: 100%; position: absolute; backface-visibility: hidden; border-radius: 10px; border: 2px solid var(--orange); }
+.back-face { background: #222 url('img/3.png') no-repeat center center; background-size: cover; }
+.front-face { background: white; transform: rotateY(180deg); }
+
+.btn-orange { background: var(--orange); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: bold; width: fit-content; }
+.btn-close { background: #444; color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; }
+
+@keyframes shake { 
+    0%, 100% { transform: rotateY(180deg) translateX(0); } 
+    20% { transform: rotateY(180deg) translateX(-12px); } 
+    40% { transform: rotateY(180deg) translateX(12px); } 
+    60% { transform: rotateY(180deg) translateX(-12px); } 
+    80% { transform: rotateY(180deg) translateX(12px); } 
 }
-
-function resetTurn() { 
-    hasFlipped = false; 
-    lockBoard = false; 
-    firstCard = null; 
-    secondCard = null; 
-}
-
-function toggleAudioModal() {
-    const modal = document.getElementById('audio-modal');
-    modal.style.display = modal.style.display === 'none' ? 'flex' : 'none';
-}
-
-function toggleMute() {
-    audioState.muted = !audioState.muted;
-    document.getElementById('mute-btn').innerText = audioState.muted ? 'Mute: ON' : 'Mute: OFF';
-    applyVolumes();
-}
-
-let timer = 5;
-const countdown = setInterval(() => {
-    timer--;
-    const countEl = document.getElementById('count-num');
-    if (countEl) countEl.innerText = timer;
-    if (timer <= 0) {
-        clearInterval(countdown);
-        const timerText = document.getElementById('timer-text');
-        if (timerText) timerText.style.display = 'none';
-        
-        const startBtnElem = document.getElementById('start-btn');
-        if (startBtnElem) {
-            startBtnElem.style.display = 'inline-block';
-        } else {
-            document.getElementById('intro-overlay').style.display = 'none';
-            initGame();
-        }
-    }
-}, 1000);
-
-startBtn.addEventListener('click', () => {
-    document.getElementById('intro-overlay').style.display = 'none';
-    applyVolumes();
-    bgMusic.play().catch(() => {});
-    initGame();
-});
-
-document.getElementById('bg-music-slider').addEventListener('input', (e) => { audioState.bg = e.target.value; applyVolumes(); });
-document.getElementById('sfx-slider').addEventListener('input', (e) => { audioState.sfx = e.target.value; applyVolumes(); });
-document.getElementById('new-game-btn').addEventListener('click', initGame);
-document.getElementById('play-again-btn').addEventListener('click', initGame);
+.shake { animation: shake 0.5s ease-in-out; }
