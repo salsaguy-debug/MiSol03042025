@@ -12,13 +12,11 @@ document.addEventListener('DOMContentLoaded', () => {
         mismatch: document.getElementById('sound-mismatch')
     };
 
-    // Pool set to 69 images
     const totalPool = 69; 
     const pairsCount = 8; 
     let firstCard, secondCard, hasFlipped = false, lockBoard = false, matches = 0, moves = 0;
     let audioState = { bg: 0.5, sfx: 0.5, muted: false };
 
-    // --- Safety Nets for memory and audio blocks ---
     function getSavedData(key, defaultVal) {
         try { return localStorage.getItem(key) || defaultVal; } 
         catch (e) { return defaultVal; }
@@ -42,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function initGame() {
-        if (!gameBoard) return; // Prevents the null error
+        if (!gameBoard) return;
         gameBoard.innerHTML = '';
         matches = 0; moves = 0;
         hasFlipped = false; lockBoard = false;
@@ -160,7 +158,6 @@ document.addEventListener('DOMContentLoaded', () => {
         secondCard = null; 
     }
 
-    // Connect HTML inline onclicks to the JavaScript logic
     window.toggleAudioModal = function() {
         const modal = document.getElementById('audio-modal');
         if (modal) modal.style.display = modal.style.display === 'none' ? 'flex' : 'none';
@@ -173,7 +170,6 @@ document.addEventListener('DOMContentLoaded', () => {
         applyVolumes();
     };
 
-    // Countdown logic
     let timer = 5;
     const countdown = setInterval(() => {
         timer--;
@@ -195,7 +191,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 1000);
 
-    // Event Listeners
     if (startBtn) {
         startBtn.addEventListener('click', () => {
             const intro = document.getElementById('intro-overlay');
