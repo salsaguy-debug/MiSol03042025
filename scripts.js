@@ -11,10 +11,12 @@ const sfx = {
     mismatch: document.getElementById('sound-mismatch')
 };
 
-const totalPool = 59; 
+// UPDATED: Now pulls from 69 possible images!
+const totalPool = 69; 
 const pairsCount = 8; 
 let firstCard, secondCard, hasFlipped, lockBoard, matches, moves = 0;
 let audioState = { bg: 0.5, sfx: 0.5, muted: false };
+let playOption1Next = true; 
 
 bestDisplay.innerText = localStorage.getItem('memoryGameBest') || '--';
 
@@ -31,6 +33,7 @@ function initGame() {
     moveDisplay.innerText = '0';
     document.getElementById('win-modal').style.display = 'none';
     
+    // Stop the winning video when restarting the game
     if (winVideo) {
         winVideo.pause();
         winVideo.currentTime = 0;
@@ -38,11 +41,13 @@ function initGame() {
     
     let images = [];
     for (let i = 1; i <= totalPool; i++) {
+        // Exclude specific UI/background images from the memory cards
         if (i === 3 || i === 30 || i === 40) continue; 
         images.push(`${i}.png`);
     }
 
     images.sort(() => Math.random() - 0.5);
+    // The game will randomly pick 8 images from your massive pool of 66 available photos
     let selection = images.slice(0, pairsCount);
     let deck = [...selection, ...selection].sort(() => Math.random() - 0.5);
 
@@ -108,12 +113,14 @@ function checkMatch() {
 function handleWin() {
     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
     
-    // Check permanent memory for the last played video (Defaults to '2' so '1' plays first)
-    let lastPlayed = localStorage.getItem('lastWinVideo') || '2';
-    let nextToPlay = lastPlayed === '1' ? '2' : '1';
+    // Alternating Logic for Videos ONLY
+    if (playOption1Next) {
+        if (winVideo) winVideo.src = 'video/win1.mp4';
+    } else {
+        if (winVideo) winVideo.src = 'video/win2.mp4';
+    }
     
-    // Save the new video back to memory immediately
-    localStorage.setItem('lastWinVideo', nextToPlay);
+    playOption1Next = !playOption1Next;
 
     const currentBest = localStorage.getItem('memoryGameBest');
     if (!currentBest || moves < parseInt(currentBest)) {
@@ -123,14 +130,14 @@ function handleWin() {
     
     setTimeout(() => { 
         document.getElementById('win-modal').style.display = 'flex'; 
+        
         bgMusic.pause();
         
         if (winVideo) {
-            // Assign the video source right before it plays
-            winVideo.src = `video/win${nextToPlay}.mp4`;
             winVideo.load();
             winVideo.play().catch(e => console.log("Video autoplay blocked by browser"));
         }
+        
     }, 600);
 }
 
